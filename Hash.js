@@ -1,7 +1,8 @@
 /*!
  * Copyright (c) 2009-2010 Andreas Blixt <andreas@blixt.org>
  * Contributors: Aaron Ogle <aogle@avencia.com>,
- *               Matti Virkkunen <mvirkkunen@gmail.com>
+ *               Matti Virkkunen <mvirkkunen@gmail.com>,
+ *               Simon Chester <simonches@gmail.com>
  * http://github.com/blixt/js-hash
  * MIT License: http://www.opensource.org/licenses/mit-license.php
  * 
@@ -21,8 +22,13 @@
  *         else
  *             alert('Hash changed to "' + newHash + '"');
  *     }
- *     Hash.init(handler, document.getElementById('hidden-iframe'));
+ *     Hash.init(handler);
  *     Hash.go('abc123');
+ * 
+ *
+ * Updated by Simon Chester (simonches@gmail.com) on 2011-05-16:
+ *   - Removed the need for blank.html and the iframe argument by creating the
+ *     iframe on initialization.
  * 
  * Updated by Matti Virkkunen (mvirkkunen@gmail.com) on 2009-11-16:
  *   - Added second argument to callback that indicates whether the callback is due
@@ -76,6 +82,26 @@ poll = function () {
     }
 },
 
+// from http://perfectionkills.com/detecting-event-support-without-browser-sniffing/
+isHashChangeSupported = function() {
+      var eventName = 'onhashchange';
+      var isSupported = (eventName in document.body);
+      if (!isSupported) {
+        document.body.setAttribute(eventName, 'return;');
+        isSupported = typeof document.body[eventName] == 'function';
+      }
+	  // documentMode logic from YUI to filter out IE8 Compat Mode (which generates false positives).
+      return isSupported && (document.documentMode === undefined || document.documentMode > 7);
+},
+
+createIframe = function () {
+	var tempEl = document.createElement();
+	tempEl.innerHTML = '<iframe src="javascript:void(0)" tabindex="-1" style="display: none;"></iframe>';
+	var frame = tempEl.childNodes[0];
+	document.body.appendChild(frame);
+	return frame;
+},
+
 // Used to create a history entry with a value in the iframe.
 setIframe = function (newHash) {
     try {
@@ -92,9 +118,9 @@ setIframe = function (newHash) {
 // Used by Internet Explorer 7 and below to set up an iframe that keeps track
 // of history changes.
 setUpIframe = function () {
-    // Don't run until access to the iframe is allowed.
+    // Don't run until access to the body is allowed.
     try {
-        iframe.contentWindow.document;
+        iframe = createIframe();
     } catch (e) {
         setTimeout(setUpIframe, 10);
         return;
@@ -123,7 +149,7 @@ setUpIframe = function () {
 };
 
 return {
-    init: function (cb, ifr) {
+    init: function (cb) {
         // init can only be called once.
         if (callback) return;
 
@@ -132,24 +158,30 @@ return {
         // Keep track of the hash value.
         hash = getHash();
         cb(hash, true);
+	
+		if (isHashChangeSupported()) {
+			if (window.addEventListener){
+			  window.addEventListener('hashchange', poll, false);
+			} else if (window.attachEvent){
+			  window.attachEvent('onhashchange', poll);
+			}
+		}
+		else
+		{
+			// Run specific code for Internet Explorer.
+			if (window.ActiveXObject) {
+				if (!documentMode || documentMode < 8) {
+					// Internet Explorer 5.5/6/7 need an iframe for history
+					// support.
+					setUpIframe();
+				}
+			} else {
+				// Change Opera navigation mode to improve history support.
+				if (history.navigationMode) history.navigationMode = 'compatible';
 
-        // Run specific code for Internet Explorer.
-        if (window.ActiveXObject) {
-            if (!documentMode || documentMode < 8) {
-                // Internet Explorer 5.5/6/7 need an iframe for history
-                // support.
-                iframe = ifr;
-                setUpIframe();
-            } else  {
-                // Internet Explorer 8 has onhashchange event.
-                window.attachEvent('onhashchange', poll);
-            }
-        } else {
-            // Change Opera navigation mode to improve history support.
-            if (history.navigationMode) history.navigationMode = 'compatible';
-
-            setInterval(poll, 50);
-        }
+				setInterval(poll, 50);
+			}
+		}
     },
 
     go: function (newHash) {

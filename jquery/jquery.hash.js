@@ -1,5 +1,6 @@
 /*!
  * Copyright (c) 2009-2010 Andreas Blixt <andreas@blixt.org>
+ * Contributors: Simon Chester <simonches@gmail.com>
  * http://github.com/blixt/js-hash
  * MIT License: http://www.opensource.org/licenses/mit-license.php
  * 
@@ -16,12 +17,8 @@
  *     $('div#log').hashchange(function (e, newHash) {
  *         $(this).prepend('<p>New hash: <b>"' + newHash + '"</b></p>');
  *     });
- *     // Initialize. Here, the src of the iframe is passed in the init
- *     // function. If you've got multiple libraries using this plugin, so
- *     // the init function is called from them, you can also set the iframe
- *     // src in the iframeSrc variable in the beginning of the code in
- *     // jquery.hash.js.
- *     $.hash.init('blank.html');
+ *     // Initialize.
+ *     $.hash.init();
  *     $.hash.go('abc123');
  *     // Changes hash when the anchor is clicked. Also automatically sets the
  *     // href attribute to "#def456", unless a second argument with a false
@@ -33,13 +30,15 @@
  * get messed up.
  *
  * Does not support history in Safari 2 and below.
+ *
+ *
+ * Updated by Simon Chester (simonches@gmail.com) on 2011-05-16:
+ *   - Updated to reflect Hash.js no longer needing iframe argument
  */
 
 (function (jQuery, Hash) {
 var
 // Plugin settings
-iframeId = 'jquery-history',
-iframeSrc = '/js/blank.html',
 eventName = 'hashchange',
 eventDataName = 'hash.fn',
 init,
@@ -53,21 +52,12 @@ callback = function (newHash) {
 };
 
 jQuery.hash = {
-    init: function (src) {
+    init: function () {
         // init can only be called once.
         if (init) return;
         init = 1;
         
-        var iframe;
-        if (window.ActiveXObject && (!documentMode || documentMode < 8)) {
-            // Create an iframe for Internet Explorer 7 and below.
-            jQuery('body').prepend(
-                '<iframe id="' + iframeId + '" style="display:none;" ' +
-                'src="' + (src || iframeSrc) + '"></iframe>');
-            iframe = jQuery('#' + iframeId)[0];
-        }
-        
-        Hash.init(callback, iframe);
+        Hash.init(callback);
     },
 
     go: Hash.go
