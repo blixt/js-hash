@@ -1,11 +1,11 @@
 /*!
- * Copyright (c) 2009-2010 Andreas Blixt <andreas@blixt.org>
+ * Copyright (c) 2009-2011 Andreas Blixt <andreas@blixt.org>
  * Contributors: Aaron Ogle <aogle@avencia.com>,
  *               Matti Virkkunen <mvirkkunen@gmail.com>,
  *               Simon Chester <simonches@gmail.com>
  * http://github.com/blixt/js-hash
  * MIT License: http://www.opensource.org/licenses/mit-license.php
- * 
+ *
  * Hash handler
  * Keeps track of the history of changes to the hash part in the address bar.
  */
@@ -14,7 +14,7 @@
  * get messed up.
  *
  * Does not support history in Safari 2 and below.
- * 
+ *
  * Example:
  *     function handler(newHash, initial) {
  *         if (initial)
@@ -24,20 +24,21 @@
  *     }
  *     Hash.init(handler);
  *     Hash.go('abc123');
- * 
+ *
  *
  * Updated by Simon Chester (simonches@gmail.com) on 2011-05-16:
  *   - Removed the need for blank.html and the iframe argument by creating the
  *     iframe on initialization.
- * 
+ *
  * Updated by Matti Virkkunen (mvirkkunen@gmail.com) on 2009-11-16:
- *   - Added second argument to callback that indicates whether the callback is due
- *     to initial state (true) or due to an actual change to the hash (false).
- * 
+ *   - Added second argument to callback that indicates whether the callback is
+ *     due to initial state (true) or due to an actual change to the hash
+ *     (false).
+ *
  * Updated by Aaron Ogle (aogle@avencia.com) on 2009-08-11:
- *   - Fixed bug where Firefox automatically unescapes location.hash but no other
- *     browsers do. Always get the hash by parsing location.href and never use
- *     location.hash.
+ *   - Fixed bug where Firefox automatically unescapes location.hash but no
+ *     other browsers do. Always get the hash by parsing location.href and
+ *     never use location.hash.
  */
 
 var Hash = (function () {
@@ -65,8 +66,8 @@ getHash = function () {
     // (and location.hash) property if the location.search property is set.
     //
     // Via Aaron: Firefox 3.5 (and below?) always unescape location.hash which
-    // causes poll to fire the hashchange event twice on escaped hashes. This is
-    // because the hash variable (escaped) will not match location.hash
+    // causes poll to fire the hashchange event twice on escaped hashes. This
+    // is because the hash variable (escaped) will not match location.hash
     // (unescaped.) The only consistent option is to rely completely on
     // location.href.
     var index = location.href.indexOf('#');
@@ -82,24 +83,29 @@ poll = function () {
     }
 },
 
-// from http://perfectionkills.com/detecting-event-support-without-browser-sniffing/
+// From:
+// http://perfectionkills.com/detecting-event-support-without-browser-sniffing/
 isHashChangeSupported = function() {
-      var eventName = 'onhashchange';
-      var isSupported = (eventName in document.body);
-      if (!isSupported) {
+    var eventName = 'onhashchange';
+    var isSupported = (eventName in document.body);
+    if (!isSupported) {
         document.body.setAttribute(eventName, 'return;');
         isSupported = typeof document.body[eventName] == 'function';
-      }
-	  // documentMode logic from YUI to filter out IE8 Compat Mode (which generates false positives).
-      return isSupported && (document.documentMode === undefined || document.documentMode > 7);
+    }
+
+    // documentMode logic from YUI to filter out IE8 Compat Mode (which
+    // generates false positives).
+    return isSupported && (document.documentMode === undefined ||
+                           document.documentMode > 7);
 },
 
 createIframe = function () {
-	var tempEl = document.createElement();
-	tempEl.innerHTML = '<iframe src="javascript:void(0)" tabindex="-1" style="display: none;"></iframe>';
-	var frame = tempEl.childNodes[0];
-	document.body.appendChild(frame);
-	return frame;
+    var tempEl = document.createElement();
+    tempEl.innerHTML = '<iframe src="javascript:void(0)" tabindex="-1" ' +
+                       'style="display: none;"></iframe>';
+    var frame = tempEl.childNodes[0];
+    document.body.appendChild(frame);
+    return frame;
 },
 
 // Used to create a history entry with a value in the iframe.
@@ -158,30 +164,30 @@ return {
         // Keep track of the hash value.
         hash = getHash();
         cb(hash, true);
-	
-		if (isHashChangeSupported()) {
-			if (window.addEventListener){
-			  window.addEventListener('hashchange', poll, false);
-			} else if (window.attachEvent){
-			  window.attachEvent('onhashchange', poll);
-			}
-		}
-		else
-		{
-			// Run specific code for Internet Explorer.
-			if (window.ActiveXObject) {
-				if (!documentMode || documentMode < 8) {
-					// Internet Explorer 5.5/6/7 need an iframe for history
-					// support.
-					setUpIframe();
-				}
-			} else {
-				// Change Opera navigation mode to improve history support.
-				if (history.navigationMode) history.navigationMode = 'compatible';
 
-				setInterval(poll, 50);
-			}
-		}
+        if (isHashChangeSupported()) {
+            if (window.addEventListener){
+              window.addEventListener('hashchange', poll, false);
+            } else if (window.attachEvent){
+              window.attachEvent('onhashchange', poll);
+            }
+        } else {
+            // Run specific code for Internet Explorer.
+            if (window.ActiveXObject) {
+                if (!documentMode || documentMode < 8) {
+                    // Internet Explorer 5.5/6/7 need an iframe for history
+                    // support.
+                    setUpIframe();
+                }
+            } else {
+                // Change Opera navigation mode to improve history support.
+                if (history.navigationMode) {
+                    history.navigationMode = 'compatible';
+                }
+
+                setInterval(poll, 50);
+            }
+        }
     },
 
     go: function (newHash) {
