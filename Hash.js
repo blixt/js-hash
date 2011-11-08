@@ -47,7 +47,6 @@ var
 window = this,
 documentMode = document.documentMode,
 history = window.history,
-location = window.location,
 // Plugin variables
 callback, hash,
 // IE-specific
@@ -143,7 +142,7 @@ setUpIframe = function () {
             curData = iframe.contentWindow.document.body.innerText;
             if (curData != data) {
                 data = curData;
-                location.hash = hash = curData;
+                window.location.hash = hash = curData;
                 callback(curData, true);
             } else {
                 curHash = getHash();
@@ -199,7 +198,7 @@ return {
         if (iframe) {
             setIframe(newHash);
         } else {
-            location.hash = hash = newHash;
+            window.location.hash = hash = newHash;
             callback(newHash, false);
         }
     }
