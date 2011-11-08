@@ -70,8 +70,8 @@ getHash = function () {
     // is because the hash variable (escaped) will not match location.hash
     // (unescaped.) The only consistent option is to rely completely on
     // location.href.
-    var index = location.href.indexOf('#');
-    return (index == -1 ? '' : location.href.substr(index + 1));
+    var index = window.location.href.indexOf('#');
+    return (index == -1 ? '' : window.location.href.substr(index + 1));
 },
 
 // Used by all browsers except Internet Explorer 7 and below.
