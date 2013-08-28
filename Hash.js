@@ -201,6 +201,8 @@ return {
             window.location.hash = hash = newHash;
             callback(newHash, false);
         }
-    }
+    },
+    
+    getHash: getHash
 };
 })();
